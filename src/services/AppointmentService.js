@@ -18,12 +18,12 @@ export async function confirmAppointment(id) {
     return api.put(`${APPOINTMENT_URL}/${id}/confirm`);
 }
 
-export async function cancelAppointment(id, cancellationReason) {
-    return api.put(`${APPOINTMENT_URL}/${id}/cancel`, { cancellationReason });
+export async function cancelAppointment(id, data) {
+    return api.put(`${APPOINTMENT_URL}/${id}/cancel`, data);
 }
 
-export async function completeAppointment(id, observations) {
-    return api.put(`${APPOINTMENT_URL}/${id}/complete`, { observations });
+export async function completeAppointment(id, data) {
+    return api.put(`${APPOINTMENT_URL}/${id}/complete`, data);
 }
 
 export async function setAsNoShowAppointment(id) {

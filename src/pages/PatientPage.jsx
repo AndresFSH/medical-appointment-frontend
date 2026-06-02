@@ -9,7 +9,7 @@ import FormGroup from '../components/ui/FormGroup.jsx'
 import SkeletonTable from '../components/ui/SkeletonTable.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import Icon from '../components/ui/Icon.jsx'
-import { formatDate, calcAge } from '../utils/dateUtils.js'
+import { formatDate, calcAge } from '../utils/DateUtils.js'
 import {PATIENT_STATUS} from '../utils/constants.js'
 
 const EMPTY_FORM = {

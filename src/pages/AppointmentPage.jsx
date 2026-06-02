@@ -17,11 +17,11 @@ import SkeletonTable from '../components/ui/SkeletonTable.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import { APPOINTMENT_STATUS } from '../utils/constants.js';
-import { formatDate, formatTime, todayISO } from '../utils/dateUtils.js'
+import { formatDate, formatTime, todayISO } from '../utils/DateUtils.js'
 
 const EMPTY_FORM = {
     patientId: '', doctorId: '', officeId: '', typeId: '',
-    date: todayISO(), status: 'SCHEDULED',
+    date: todayISO(), startTime: '', status: 'SCHEDULED',
 };
 
 export default function AppointmentPage() {
@@ -62,21 +62,9 @@ export default function AppointmentPage() {
     }, [data, search, filterStatus, filterDate])
 
     const openCreate = () => { setForm(EMPTY_FORM); setEditId(null); setModal(true) }
-    const openEdit = (a) => {
-        setForm({
-            patientId: String(a.patient?.id ?? a.patientId ?? ''),
-            doctorId: String(a.doctor?.id ?? a.doctorId ?? ''),
-            officeId: String(a.office?.id ?? a.officeId ?? ''),
-            typeId: String(a.type?.id ?? a.typeId ?? ''),
-            date: (a.date ?? a.appointmentDate ?? '').slice(0, 10),
-            startTime: (a.startTime ?? '').slice(0, 5),
-        })
-        setEditId(a.appointmentId)
-        setModal(true)
-    }
 
     const handleSave = async () => {
-        if (!form.patientId || !form.doctorId || !form.officeId  || !form.typeId || !form.date || !form.startTime) {
+        if (!form.patientId || !form.doctorId || !form.officeId || !form.typeId || !form.date || !form.startTime) {
             toast.error('Todos los campos son obligatorios')
             return
         }
@@ -88,8 +76,8 @@ export default function AppointmentPage() {
                 doctorId: String(form.doctorId),
                 officeId: form.officeId ? String(form.officeId) : undefined,
                 typeId: form.typeId ? String(form.typeId) : undefined,
+                startAt: `${form.date}T${form.startTime}:00`
             }
-
             await createAppointment(payload)
             toast.success('Cita creada')
 
@@ -120,17 +108,15 @@ export default function AppointmentPage() {
     const change = (field) => e => setForm(f => ({ ...f, [field]: e.target.value }))
 
     const getPatientName = (a) => {
-        if (a.patientName) return a.patientName
-        if (a.patient) return `${a.patient.fullname}`
-        const p = patients.find(p => p.patientId === (a.patientId))
-        return p ? `${p.fullname}` : `Paciente ${a.patientId}`
+        if (a.patient?.fullName) return a.patient.fullName
+        const p = patients.find(p => p.patientId === a.patient?.patientId)
+        return p?.fullName ?? '—'
     }
 
     const getDoctorName = (a) => {
-        if (a.doctorName) return a.doctorName
-        if (a.doctor) return `${a.doctor.fullname}`
-        const d = doctors.find(d => d.doctorId === (a.doctorId))
-        return d ? `${d.fullname}` : `Doctor ${a.doctorId}`
+        if (a.doctor?.fullName) return a.doctor.fullName
+        const d = doctors.find(d => d.doctorId === a.doctor?.doctorId)
+        return d?.fullName ?? '—'
     }
 
     const statusActions = {
@@ -211,8 +197,8 @@ export default function AppointmentPage() {
                                     <tr key={a.appointmentId}>
                                         <td style={{ fontWeight: 600, color: 'var(--text)' }}>{getPatientName(a)}</td>
                                         <td>{getDoctorName(a)}</td>
-                                        <td style={{ fontSize: 12 }}>{formatDate(a.date ?? a.appointmentDate)}</td>
-                                        <td style={{ fontSize: 12 }}>{formatTime(a.startTime)}</td>
+                                        <td style={{ fontSize: 12 }}>{formatDate(a.startAt)}</td>
+                                        <td style={{ fontSize: 12 }}>{formatTime(a.startAt)}</td>
                                         <td style={{ fontSize: 12 }}>{officeName}</td>
                                         <td>
                                             {actions.length > 0
@@ -231,9 +217,6 @@ export default function AppointmentPage() {
                                             <div className="table-actions">
                                                 <button className="btn btn-ghost btn-icon" title="Ver" onClick={() => setViewItem(a)}>
                                                     <Icon name="eye" size={14} />
-                                                </button>
-                                                <button className="btn btn-ghost btn-icon" title="Editar" onClick={() => openEdit(a)}>
-                                                    <Icon name="edit" size={14} />
                                                 </button>
                                             </div>
                                         </td>
@@ -260,7 +243,7 @@ export default function AppointmentPage() {
                     <FormGroup label="Paciente" required colSpan={2}>
                         <select className="form-control" value={form.patientId} onChange={change('patientId')}>
                             <option value="">— Seleccionar paciente —</option>
-                            {patients.map(p => <option key={p.patientId} value={String(p.patientId)}>{p.fullName}</option>)}
+                            {patients.map(p => <option key={p.patientId} value={String(p.patientId)} > {p.fullName} </option>)}
                         </select>
                     </FormGroup>
                     <FormGroup label="Doctor" required colSpan={2}>
@@ -278,7 +261,7 @@ export default function AppointmentPage() {
                     <FormGroup label="Tipo de cita" colspan={2}>
                         <select className="form-control" value={form.typeId} onChange={change('typeId')}>
                             <option value="">- Seleccionar tipo de cita -</option>
-                            {types.map(t => <option key={t.typeId} value={String(t.typeId)}>{t.name}</option>)}
+                            {types.map(t => <option key={t.id} value={String(t.id)}>{t.name}</option>)}
                         </select>
                     </FormGroup>
                     <FormGroup label="Fecha" required>
@@ -328,8 +311,8 @@ export default function AppointmentPage() {
                     {[
                         ['Paciente', getPatientName(viewItem)],
                         ['Doctor', getDoctorName(viewItem)],
-                        ['Fecha', formatDate(viewItem.date ?? viewItem.appointmentDate)],
-                        ['Hora', `${formatTime(viewItem.startTime)} — ${formatTime(viewItem.endTime)}`],
+                        ['Fecha', formatDate(viewItem.startAt)],
+                        ['Hora', `${formatTime(viewItem.startAt?.slice(11,16))} — ${formatTime(viewItem.endAt?.slice(11,16))}`],
                         ['Consultorio', viewItem.office?.name ?? offices.find(o => o.officeId === viewItem.officeId)?.name ?? '—'],
                     ].map(([lbl, val]) => (
                         <div key={lbl} className="info-row">

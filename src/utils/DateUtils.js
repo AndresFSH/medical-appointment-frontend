@@ -15,28 +15,34 @@ export const formatDate = (dateStr) => {
 /**
  * "15 ene 2025, 10:30"
  */
-export const formatDateTime = (dateStr) => {
-  if (!dateStr) return '—'
-  try {
-    return new Date(dateStr).toLocaleString(locale, {
-      day: '2-digit', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    })
-  } catch { return dateStr }
-}
+export const formatTime = (value) => {
 
-/**
- * "10:30 AM"
- */
-export const formatTime = (timeStr) => {
-  if (!timeStr) return '—'
-  // timeStr may be "10:30:00" or "10:30"
+  if (!value) return '—'
+
   try {
-    const [h, m] = timeStr.split(':').map(Number)
-    const date = new Date()
-    date.setHours(h, m, 0)
-    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
-  } catch { return timeStr }
+    const date = new Date(value)
+
+
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleTimeString('es-CO', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
+    const [h, m] = value.split(':').map(Number)
+
+    const d = new Date()
+    d.setHours(h, m, 0)
+
+    return d.toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (err) {
+    console.error(err)
+    return value
+  }
 }
 
 /**

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useFetch } from '../hooks/useFetch.js'
 import { createDoctor, updateDoctor, getDoctorById, getAllDoctors } from '../services/DoctorService'
 import { getSpecialties } from '../services/SpecialtyService.js'
+import { createSchedule, getDoctorSchedule } from '../services/ScheduleService.js'
 import { useApp } from '../context/AppContext.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
 import Badge from '../components/ui/Badge.jsx'
@@ -15,6 +16,10 @@ const EMPTY_FORM = {
     fullName: '', specialtyId: '', active: true
 }
 
+const EMPTY_SCHEDULE_FORM = {
+    dayOfWeek: 'MONDAY', startTime: '8:00', endTime: '18:00'
+}
+
 export default function DoctorPage() {
     const { toast } = useApp()
     const { data, loading, error, refetch } = useFetch(getAllDoctors)
@@ -24,6 +29,14 @@ export default function DoctorPage() {
     const [filterStatus, setFilter] = useState('')
     const [filterSpec, setFilterSpec] = useState('')
     const [form, setForm] = useState(EMPTY_FORM)
+
+    const [selectedDoctor, setSelectedDoctor] = useState(null)
+    const [scheduleModalOpen, setScheduleModalOpen] = useState(false)
+    const [scheduleFormModalOpen, setScheduleFormModalOpen] = useState(false)
+    const [schedules, setSchedules] = useState([])
+    const [loadingSchedules, setLoadingSchedules] = useState(false)
+    const [scForm, setScForm] = useState(EMPTY_SCHEDULE_FORM)
+
     const [editId, setEditId] = useState(null)
     const [modalOpen, setModal] = useState(false)
     const [saving, setSaving] = useState(false)
@@ -48,6 +61,38 @@ export default function DoctorPage() {
         setModal(true)
     }
 
+    const openCreateSchedule = () => {
+        setScForm({
+            dayOfWeek: 'MONDAY',
+            startTime: '08:00',
+            endTime: '18:00'
+        })
+        setScheduleFormModalOpen(true)
+    }
+
+    const openSchedules = async (doctor) => {
+        try {
+            setLoadingSchedules(true)
+            const response =
+                await getDoctorSchedule(
+                    doctor.doctorId
+                )
+
+            console.log(response)
+
+            setSchedules(response)
+            setSelectedDoctor(doctor)
+            setScheduleModalOpen(true)
+        } catch (e) {
+            toast.error(
+                e.message ??
+                'Error cargando horarios'
+            )
+        } finally {
+            setLoadingSchedules(false)
+        }
+    }
+
     const openEdit = (d) => {
         setForm({
             fullName: d.fullName ?? '',
@@ -65,7 +110,7 @@ export default function DoctorPage() {
         }
         setSaving(true)
         try {
-            const payload = { ...form, specialtyId: form.specialtyId || null }
+            const payload = { ...form, specialtyId: String(form.specialtyId) }
             if (editId) {
                 await updateDoctor(editId, payload)
                 toast.success('Doctor actualizado')
@@ -77,6 +122,36 @@ export default function DoctorPage() {
             refetch()
         } catch (e) {
             toast.error(e.message ?? 'Error al guardar')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleSaveSchedule = async () => {
+        if (!scForm.dayOfWeek || !scForm.startTime || !scForm.endTime) {
+            toast.error('Campos obligatorios')
+            return
+        }
+        try {
+            setSaving(true)
+            await createSchedule(
+                selectedDoctor.doctorId,
+                scForm
+            )
+            toast.success(
+                'Horario creado correctamente'
+            )
+            const response =
+                await getDoctorSchedule(
+                    selectedDoctor.doctorId
+                )
+            setSchedules(response)
+            setScheduleFormModalOpen(false)
+        } catch (e) {
+            toast.error(
+                e.message ??
+                'Error al crear horario'
+            )
         } finally {
             setSaving(false)
         }
@@ -144,6 +219,9 @@ export default function DoctorPage() {
                                                 <button className="btn btn-ghost btn-icon" title="Editar" onClick={() => openEdit(d)}>
                                                     <Icon name="edit" size={14} />
                                                 </button>
+                                                <button className="btn btn-ghost btn-icon" title="Horario" onClick={() => openSchedules(d)}>
+                                                    <Icon name="calendar" size={14}/>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -175,11 +253,15 @@ export default function DoctorPage() {
                         </select>
                     </FormGroup>
                     {editId && (<FormGroup label="Estado" colSpan={2}>
-                            <select className="form-control" value={form.active} onChange={change('active')}>
-                                <option value="true">Activo</option>
-                                <option value="false">Inactivo</option>
-                            </select>
-                        </FormGroup>
+                        <select className="form-control" value={form.active} onChange={(e) =>{
+                            setForm(f =>({
+                                ...f, active: e.target.value === 'true'
+                            }))
+                        }}>
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </FormGroup>
                     )}
                 </div>
             </Modal>
@@ -206,9 +288,104 @@ export default function DoctorPage() {
                     </div>
                 </Modal>
             )}
+
+            <Modal open={scheduleModalOpen} onClose={() => setScheduleModalOpen(false)}
+                title={`Horarios - ${selectedDoctor?.fullName ?? ''}`} size="xl"
+                footer={
+                    <>
+                        <button className="btn btn-secondary" onClick={() => setScheduleModalOpen(false)}> Cerrar </button>
+                        <button className="btn btn-primary" onClick={openCreateSchedule} >
+                            <Icon name="plus" size={14} /> Nuevo horario
+                        </button>
+                    </>
+                }
+            >
+                {loadingSchedules ? (<SkeletonTable rows={4} cols={3} />) : schedules.length === 0 ?
+                    (
+                        <EmptyState
+                            icon="calendar"
+                            title="Sin horarios"
+                            sub="Este doctor aún no tiene horarios configurados"
+                        />
+                    ) : (
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Día</th>
+                                    <th>Inicio</th>
+                                    <th>Fin</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {schedules.map(sc => (
+                                    <tr key={sc.scheduleId}>
+                                        <td>{sc.dayOfWeek}</td>
+                                        <td>{sc.startTime}</td>
+                                        <td>{sc.endTime}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+            </Modal>
+
+            <Modal open={scheduleFormModalOpen} onClose={() => setScheduleFormModalOpen(false)}
+                title="Nuevo horario" size="lg"
+                footer={
+                    <>
+                        <button className="btn btn-secondary" onClick={() => setScheduleFormModalOpen(false)} > Cancelar </button>
+                        <button className="btn btn-primary" onClick={handleSaveSchedule} disabled={saving} >
+                            {saving ? 'Guardando...' : 'Crear'}
+                        </button>
+                    </>
+                }
+            >
+                <div className="form-grid">
+                    <FormGroup label="Día">
+                        <select className="form-control" value={scForm.dayOfWeek}
+                            onChange={(e) =>
+                                setScForm(f => ({
+                                    ...f,
+                                    dayOfWeek: e.target.value
+                                }))
+                            }
+                        >
+                            <option value="MONDAY">Lunes</option>
+                            <option value="TUESDAY">Martes</option>
+                            <option value="WEDNESDAY">Miércoles</option>
+                            <option value="THURSDAY">Jueves</option>
+                            <option value="FRIDAY">Viernes</option>
+                            <option value="SATURDAY">Sábado</option>
+                            <option value="SUNDAY">Domingo</option>
+                        </select>
+                    </FormGroup>
+
+                    <FormGroup label="Hora inicio">
+                        <input type="time" className="form-control" value={scForm.startTime}
+                            onChange={(e) =>
+                                setScForm(f => ({
+                                    ...f,
+                                    startTime: e.target.value
+                                }))
+                            }
+                        />
+                    </FormGroup>
+
+                    <FormGroup label="Hora fin">
+                        <input type="time" className="form-control" value={scForm.endTime}
+                            onChange={(e) =>
+                                setScForm(f => ({
+                                    ...f,
+                                    endTime: e.target.value
+                                }))
+                            }
+                        />
+                    </FormGroup>
+
+                </div>
+            </Modal>
         </div>
-
-
 
     )
 }
