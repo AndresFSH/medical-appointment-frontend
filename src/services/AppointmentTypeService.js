@@ -2,8 +2,8 @@ import {api} from './api';
 
 const TYPE_URL = '/appointment-types';
 
-export async function createAppointmentType(name, durationMinutes) {
-    return api.post(TYPE_URL, { name, durationMinutes });
+export async function createAppointmentType(type) {
+    return api.post(TYPE_URL, type);
 }
 
 export async function getAppointmentTypes() {

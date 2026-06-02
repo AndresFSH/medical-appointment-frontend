@@ -1,43 +1,45 @@
-import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import MainLayout from './layouts/MainLayout'
-import HomePage from './pages/Home/HomePage'
-import AppointmentsListPage from './pages/Appointments/AppointmentsListPage'
-import AppointmentDetailPage from './pages/Appointments/AppointmentDetailPage'
-import CreateAppointmentPage from './pages/Appointments/CreateAppointmentPage'
-import DoctorsListPage from './pages/Doctors/DoctorsListPage'
-import DoctorDetailPage from './pages/Doctors/DoctorDetailPage'
-import CreateDoctorPage from './pages/Doctors/CreateDoctorPage'
-import PatientsListPage from './pages/Patients/PatientsListPage'
-import PatientDetailPage from './pages/Patients/PatientDetailPage'
-import CreatePatientPage from './pages/Patients/CreatePatientPage'
-import OfficesListPage from './pages/Offices/OfficesListPage'
-import CreateOfficePage from './pages/Offices/CreateOfficePage'
-import AppointmentTypesPage from './pages/AppointmentTypes/AppointmentTypesPage'
-import CreateAppointmentTypePage from './pages/AppointmentTypes/CreateAppointmentTypePage'
-import ReportsPage from './pages/Reports/ReportsPage'
+import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AppProvider } from './context/AppContext.jsx';
 
-export default function App(){
+import Sidebar from './components/layout/SideBar.jsx';
+import TopBar from './components/layout/TopBar.jsx';
+import Toast from './components/ui/Toast.jsx';
+
+import AppointmentPage from './pages/AppointmentPage.jsx';
+import PatientPage from './pages/PatientPage.jsx';
+import SpecialtyPage from './pages/SpecialtyPage.jsx';
+import DoctorPage from './pages/DoctorPage.jsx';
+import OfficePage from './pages/OfficePage.jsx';
+
+function Layout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
-    <MainLayout>
-      <Routes>
-        <Route path="/" element={<HomePage/>} />
-        <Route path="/appointments" element={<AppointmentsListPage/>} />
-        <Route path="/appointments/new" element={<CreateAppointmentPage/>} />
-        <Route path="/appointments/:id" element={<AppointmentDetailPage/>} />
-        <Route path="/doctors" element={<DoctorsListPage/>} />
-        <Route path="/doctors/new" element={<CreateDoctorPage/>} />
-        <Route path="/doctors/:id" element={<DoctorDetailPage/>} />
-        <Route path="/patients" element={<PatientsListPage/>} />
-        <Route path="/patients/new" element={<CreatePatientPage/>} />
-        <Route path="/patients/:id" element={<PatientDetailPage/>} />
-        <Route path="/offices" element={<OfficesListPage/>} />
-        <Route path="/offices/new" element={<CreateOfficePage/>} />
-        <Route path="/appointment-types" element={<AppointmentTypesPage/>} />
-        <Route path="/appointment-types/new" element={<CreateAppointmentTypePage/>} />
-        <Route path="/reports" element={<ReportsPage/>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </MainLayout>
+    <div className='app-layout'>
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <TopBar onMenuClick={() => setSidebarOpen(o => !o)} />
+      <main className='main-content'>
+        <Routes>
+          <Route path="/appointments" element={<AppointmentPage />} />
+          <Route path="/patients" element={<PatientPage />} />
+          <Route path="/specialties" element={<SpecialtyPage />} />
+          <Route path="/doctors" element={<DoctorPage />} />
+          <Route path="/offices" element={<OfficePage />} />
+          <Route path="*" element={<Navigate to="/appointments" />} />
+        </Routes>
+      </main>
+      <Toast />
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <BrowserRouter>
+        <Layout />
+      </BrowserRouter>
+    </AppProvider>
   )
 }

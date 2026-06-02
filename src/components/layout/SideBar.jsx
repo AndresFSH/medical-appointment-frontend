@@ -50,7 +50,7 @@ export default function Sidebar({ open, onClose }) {
 
         {/* Footer */}
         <div className="sidebar-footer">
-          <div className="sidebar-footer-text">UMO v1.0 © 2025</div>
+          <div className="sidebar-footer-text">UMO v1.0 © 2026</div>
         </div>
       </aside>
     </>

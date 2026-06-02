@@ -1,21 +1,83 @@
-:root{
-  --bg: #f0f4f8;
-  --card: #ffffff;
-  --muted: #64748b;
-  --accent: #006494;
-  --radius: 10px;
+/* ─── CSS Variables — Light Theme ─────────────────────── */
+:root {
+  --bg:            #f0f4f8;
+  --surface:       #ffffff;
+  --surface-alt:   #f8fafc;
+  --border:        #e2e8f0;
+  --border-light:  #f1f5f9;
+
+  --text:          #0d1b2a;
+  --text-secondary:#334155;
+  --text-muted:    #94a3b8;
+
+  --accent:        #006494;
+  --accent-light:  #e0f0f8;
+  --accent-hover:  #005580;
+
+  --success:       #047857;
+  --success-bg:    #d1fae5;
+  --warning:       #b45309;
+  --warning-bg:    #fef3c7;
+  --danger:        #dc2626;
+  --danger-bg:     #fee2e2;
+  --info:          #1d4ed8;
+  --info-bg:       #dbeafe;
+
+  --sidebar-bg:    #0d1b2a;
+  --sidebar-text:  rgba(255,255,255,0.6);
+  --sidebar-active:rgba(0,100,148,0.35);
+
+  --radius:        10px;
+  --radius-sm:     6px;
+  --radius-lg:     14px;
+  --shadow:        0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:     0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.12);
+
+  --transition:    0.15s ease;
+  --font:          'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --topbar-h:      56px;
+  --sidebar-w:     224px;
 }
-*{box-sizing:border-box}
-body{font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:var(--bg); color:#0f172a; margin:0}
-.container{max-width:1100px;margin:0 auto;padding:20px}
-.app-header{background:transparent;padding:18px 0}
-.header-inner{display:flex;align-items:center;justify-content:space-between}
-.brand{font-weight:800;color:var(--accent);font-size:20px;text-decoration:none}
-.main-nav a{margin-left:18px;color:#0f172a;text-decoration:none}
-.app-content{padding-top:20px;min-height:calc(100vh - 160px)}
-.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 6px 18px rgba(15,23,42,0.06);margin-bottom:16px}
-.list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
-.muted{color:var(--muted)}
-.btn{display:inline-block;background:var(--accent);color:white;padding:8px 12px;border-radius:8px;text-decoration:none}
-.small{font-size:13px}
-.app-footer{padding:18px 0;color:var(--muted);text-align:center}
+
+/* ─── Dark Theme ───────────────────────────────────────── */
+[data-theme='dark'] {
+  --bg:            #0a1628;
+  --surface:       #0f2035;
+  --surface-alt:   #0d1b2a;
+  --border:        #1e3a5a;
+  --border-light:  #162d47;
+
+  --text:          #f1f5f9;
+  --text-secondary:#cbd5e1;
+  --text-muted:    #64748b;
+
+  --accent:        #38bdf8;
+  --accent-light:  #0c2a3e;
+  --accent-hover:  #0ea5e9;
+
+  --success:       #34d399;
+  --success-bg:    #022c22;
+  --warning:       #fbbf24;
+  --warning-bg:    #1c1305;
+  --danger:        #f87171;
+  --danger-bg:     #1c0a0a;
+  --info:          #60a5fa;
+  --info-bg:       #0a1628;
+}
+
+/* ─── Reset ────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  transition: background var(--transition), color var(--transition);
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+img, svg { display: block; }

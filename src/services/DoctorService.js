@@ -2,8 +2,8 @@ import {api} from './api';
 
 const DOCTOR_URL = '/doctors';
 
-export async function createDoctor(fullname, specialtyId) {
-    return api.post(DOCTOR_URL, { fullname, specialtyId });
+export async function createDoctor(doctor) {
+    return api.post(DOCTOR_URL, doctor);
 }
 
 export async function getDoctorById(id) {
@@ -14,6 +14,6 @@ export async function getAllDoctors() {
     return api.get(DOCTOR_URL);
 }
 
-export async function updateDoctor(id, fullname, active,specialtyId) {
-    return api.put(`${DOCTOR_URL}/${id}`, { fullname, active, specialtyId });
+export async function updateDoctor(id, doctor) {
+    return api.put(`${DOCTOR_URL}/${id}`, doctor);
 }
